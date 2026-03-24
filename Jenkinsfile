@@ -10,23 +10,28 @@ pipeline {
             }
         }
 
+        stage('Debug') {
+            steps {
+                sh 'ls -la'
+                sh 'cat run_tests.sh'
+                sh 'docker run --rm -v $(pwd):/app -w /app python:3.11-slim ls -la /app'
+            }
+        }
+
         stage('Run Tests') {
             steps {
-                echo 'Running tests inside Docker...'
                 sh 'docker run --rm -v $(pwd):/app -w /app -e PYTHONPATH=/app -e DATABASE_URL=sqlite:///./quantarisk.db python:3.11-slim bash /app/run_tests.sh'
             }
         }
 
         stage('Docker Build') {
             steps {
-                echo 'Building Docker image...'
                 sh 'docker build -t quantarisk-backend .'
             }
         }
 
         stage('Deploy') {
             steps {
-                echo 'Deploying...'
                 sh 'docker-compose down || true'
                 sh 'docker-compose up -d'
             }
