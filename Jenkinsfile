@@ -15,33 +15,33 @@ pipeline {
             }
         }
 
-        stage('Install Dependencies') {
-            steps {
-                echo 'Installing Python dependencies...'
-                bat 'pip install -r requirements.txt'
-            }
-        }
-
         stage('Run Tests') {
             steps {
-                echo 'Running automated tests (CT layer)...'
-                bat 'pip install pytest httpx'
-                bat 'pytest tests/ -v --tb=short'
+                echo 'Running tests inside Docker...'
+                sh '''
+                    docker run --rm \
+                      -v $(pwd):/app \
+                      -w /app \
+                      -e PYTHONPATH=/app \
+                      -e DATABASE_URL=sqlite:///./quantarisk.db \
+                      python:3.11-slim \
+                      sh -c "pip install -r requirements.txt -q && pytest tests/ -v --tb=short"
+                '''
             }
         }
 
         stage('Docker Build') {
             steps {
                 echo 'Building Docker image...'
-                bat 'docker build -t %IMAGE_NAME% .'
+                sh 'docker build -t quantarisk-backend .'
             }
         }
 
         stage('Deploy') {
             steps {
                 echo 'Deploying with docker-compose...'
-                bat 'docker-compose down'
-                bat 'docker-compose up -d'
+                sh 'docker-compose down || true'
+                sh 'docker-compose up -d'
             }
         }
 
