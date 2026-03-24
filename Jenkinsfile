@@ -1,10 +1,6 @@
 pipeline {
     agent any
 
-    environment {
-        IMAGE_NAME = 'quantarisk-backend'
-    }
-
     stages {
 
         stage('Checkout') {
@@ -17,15 +13,7 @@ pipeline {
         stage('Run Tests') {
             steps {
                 echo 'Running tests inside Docker...'
-                sh """
-                    docker run --rm \\
-                      -v \$(pwd):/app \\
-                      -w /app \\
-                      -e PYTHONPATH=/app \\
-                      -e DATABASE_URL=sqlite:///./quantarisk.db \\
-                      python:3.11-slim \\
-                      sh -c "pip install -r requirements.txt -q && pytest tests/ -v --tb=short"
-                """
+                sh 'docker run --rm -v $(pwd):/app -w /app -e PYTHONPATH=/app -e DATABASE_URL=sqlite:///./quantarisk.db python:3.11-slim bash /app/run_tests.sh'
             }
         }
 
