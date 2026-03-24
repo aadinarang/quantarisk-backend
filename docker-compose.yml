@@ -1,0 +1,12 @@
+services:
+  backend:
+    build: .
+    container_name: quantarisk-backend
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./quantarisk.db:/app/quantarisk.db
+    environment:
+      - DATABASE_URL=sqlite:///./quantarisk.db
+      - PYTHONPATH=/app
+    restart: unless-stopped
