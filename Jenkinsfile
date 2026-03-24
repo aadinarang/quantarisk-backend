@@ -30,10 +30,13 @@ pipeline {
 
         stage('Deploy') {
             steps {
-                sh 'docker compose down || true'
-                sh 'docker compose up -d'
-            }
-        }
+                echo 'Deploying...'
+                sh 'docker stop quantarisk-backend || true'
+                sh 'docker rm quantarisk-backend || true'
+                sh 'docker run -d --name quantarisk-backend -p 8000:8000 -e DATABASE_URL=sqlite:///./quantarisk.db -e PYTHONPATH=/app quantarisk-backend'
+    }
+}
+
 
     }
 
