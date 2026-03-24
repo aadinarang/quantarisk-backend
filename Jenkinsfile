@@ -3,7 +3,6 @@ pipeline {
 
     environment {
         IMAGE_NAME = 'quantarisk-backend'
-        CONTAINER_NAME = 'quantarisk-backend'
     }
 
     stages {
@@ -18,15 +17,15 @@ pipeline {
         stage('Run Tests') {
             steps {
                 echo 'Running tests inside Docker...'
-                sh '''
-                    docker run --rm \
-                      -v $(pwd):/app \
-                      -w /app \
-                      -e PYTHONPATH=/app \
-                      -e DATABASE_URL=sqlite:///./quantarisk.db \
-                      python:3.11-slim \
+                sh """
+                    docker run --rm \\
+                      -v \$(pwd):/app \\
+                      -w /app \\
+                      -e PYTHONPATH=/app \\
+                      -e DATABASE_URL=sqlite:///./quantarisk.db \\
+                      python:3.11-slim \\
                       sh -c "pip install -r requirements.txt -q && pytest tests/ -v --tb=short"
-                '''
+                """
             }
         }
 
@@ -39,7 +38,7 @@ pipeline {
 
         stage('Deploy') {
             steps {
-                echo 'Deploying with docker-compose...'
+                echo 'Deploying...'
                 sh 'docker-compose down || true'
                 sh 'docker-compose up -d'
             }
@@ -49,10 +48,10 @@ pipeline {
 
     post {
         success {
-            echo 'Pipeline completed successfully. QuantaRisk is live.'
+            echo 'Pipeline completed. QuantaRisk is live.'
         }
         failure {
-            echo 'Pipeline failed. Check the logs above for errors.'
+            echo 'Pipeline failed. Check logs above.'
         }
     }
 }
