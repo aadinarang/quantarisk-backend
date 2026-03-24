@@ -5,22 +5,20 @@ pipeline {
 
         stage('Checkout') {
             steps {
-                echo 'Checking out code from GitHub...'
                 checkout scm
-            }
-        }
-
-        stage('Debug') {
-            steps {
-                sh 'ls -la'
-                sh 'cat run_tests.sh'
-                sh 'docker run --rm -v $(pwd):/app -w /app python:3.11-slim ls -la /app'
             }
         }
 
         stage('Run Tests') {
             steps {
-                sh 'docker run --rm -v $(pwd):/app -w /app -e PYTHONPATH=/app -e DATABASE_URL=sqlite:///./quantarisk.db python:3.11-slim bash /app/run_tests.sh'
+                sh '''
+                    docker build -t quantarisk-test -f Dockerfile .
+                    docker run --rm \
+                      -e PYTHONPATH=/app \
+                      -e DATABASE_URL=sqlite:///./quantarisk.db \
+                      quantarisk-test \
+                      bash -c "pytest tests/ -v --tb=short"
+                '''
             }
         }
 
