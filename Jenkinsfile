@@ -1,4 +1,4 @@
-﻿/*
+/*
  * QuantaRisk CI/CD/CT Pipeline -- Blue/Green Deployment
  */
 
