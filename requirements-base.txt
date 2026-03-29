@@ -4,6 +4,6 @@ numpy==1.26.4
 scikit-learn==1.4.2
 torch==2.3.0+cpu
 arch==5.6.0
-statsmodels>=0.13,<0.15
+statsmodels>=0.13,<0.14
 yfinance==0.2.38
 sqlalchemy==2.0.29
