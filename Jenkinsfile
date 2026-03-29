@@ -19,7 +19,7 @@ pipeline {
         BLUE_PORT    = "8001"
         GREEN_PORT   = "8002"
         NGINX_CONF   = "/etc/nginx/conf.d/quantarisk.conf"
-        DB_PATH      = "/var/jenkins_home/quantarisk/quantarisk.db"
+        DB_PATH      = "/var/jenkins_home/quantarisk"
         MODELS_PATH  = "/var/jenkins_home/quantarisk/models"
     }
 
@@ -83,8 +83,7 @@ pipeline {
                     docker network inspect quantarisk-net >/dev/null 2>&1 \\
                         || docker network create quantarisk-net
 
-                    mkdir -p /var/jenkins_home/quantarisk
-                    touch ${env.DB_PATH}
+                    mkdir -p ${env.DB_PATH}
                     mkdir -p ${env.MODELS_PATH}
 
                     docker stop quantarisk-${env.INACTIVE_SLOT} 2>/dev/null || true
@@ -98,7 +97,7 @@ pipeline {
                       -e PYTHONPATH=/app \\
                       -e BUILD_VERSION=${BUILD_NUMBER} \\
                       -e MODELS_DIR=/models \\
-                      -v ${env.DB_PATH}:/data/quantarisk.db \\
+                      -v ${env.DB_PATH}:/data \\
                       -v ${env.MODELS_PATH}:/models \\
                       --network quantarisk-net \\
                       ${IMAGE_NAME}:${BUILD_NUMBER}
@@ -107,7 +106,8 @@ pipeline {
                     ATTEMPTS=0
                     while [ \$ATTEMPTS -lt 30 ]; do
                         STATUS=\$(curl -s -o /dev/null -w "%{http_code}" \\
-                            http://127.0.0.1:${env.INACTIVE_PORT}/api/health 2>/dev/null || echo 000)
+                            http://127.0.0.1:${env.INACTIVE_PORT}/api/health 2>/dev/null)
+                        if [ -z "\$STATUS" ]; then STATUS="000"; fi
                         if [ "\$STATUS" = "200" ]; then
                             echo "Container healthy after \$ATTEMPTS attempts"
                             break
