@@ -1,0 +1,9 @@
+[run]
+omit =
+    app/services/ingestion.py
+    app/services/auth.py
+
+[report]
+exclude_lines =
+    pragma: no cover
+    if not TORCH_AVAILABLE
