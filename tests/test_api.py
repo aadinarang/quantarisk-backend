@@ -1,4 +1,3 @@
-import pytest
 from fastapi.testclient import TestClient
 from app.main import app
 
@@ -8,8 +7,7 @@ client = TestClient(app)
 def test_get_symbols():
     response = client.get("/api/symbols")
     assert response.status_code == 200
-    data = response.json()
-    assert isinstance(data, list)
+    assert isinstance(response.json(), list)
 
 
 def test_get_risk_overview():
@@ -34,7 +32,12 @@ def test_get_risk_snapshot_valid_symbol():
 
 def test_get_risk_snapshot_missing_symbol():
     response = client.get("/api/risk/snapshot")
-    assert response.status_code == 422  # missing required param
+    assert response.status_code == 422
+
+
+def test_get_risk_snapshot_unknown_symbol():
+    response = client.get("/api/risk/snapshot?symbol=FAKE")
+    assert response.status_code == 404
 
 
 def test_get_risk_history_valid_symbol():
@@ -49,5 +52,4 @@ def test_get_risk_history_valid_symbol():
 def test_get_drift_summary():
     response = client.get("/api/drift/summary")
     assert response.status_code == 200
-    data = response.json()
-    assert isinstance(data, list)
+    assert isinstance(response.json(), list)

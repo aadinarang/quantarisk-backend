@@ -1,6 +1,8 @@
 from datetime import datetime
-from fastapi import FastAPI, Query
+from contextlib import asynccontextmanager
+from fastapi import FastAPI, Query, Depends
 from fastapi.middleware.cors import CORSMiddleware
+from sqlalchemy.orm import Session
 from .db import SessionLocal, Symbol, init_db
 from .models import (
     SymbolInfo, RiskOverview, SymbolSnapshot,
@@ -8,8 +10,18 @@ from .models import (
 )
 from .services.analytics import get_snapshot, get_history
 
-app = FastAPI(title="QuantaRisk API", version="1.0.0")
 
+# --- Lifespan (runs on startup/shutdown) ---
+@asynccontextmanager
+async def lifespan(app):
+    init_db()
+    yield
+
+
+# --- App created ONCE with lifespan ---
+app = FastAPI(title="QuantaRisk API", version="1.0.0", lifespan=lifespan)
+
+# --- Middleware added to the ONE app ---
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -18,17 +30,8 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-from contextlib import asynccontextmanager
 
-@asynccontextmanager
-async def lifespan(app):
-    init_db()
-    yield
-
-app = FastAPI(title="QuantaRisk API", version="1.0.0", lifespan=lifespan)
-
-
-
+# --- DB dependency ---
 def get_db():
     db = SessionLocal()
     try:
@@ -37,10 +40,7 @@ def get_db():
         db.close()
 
 
-from fastapi import Depends
-from sqlalchemy.orm import Session
-
-
+# --- Routes ---
 @app.get("/api/symbols", response_model=list[SymbolInfo])
 def get_symbols(db: Session = Depends(get_db)):
     symbols = db.query(Symbol).all()
@@ -69,6 +69,9 @@ def get_risk_snapshot(
     symbol: str = Query(...), db: Session = Depends(get_db)
 ):
     snap = get_snapshot(db, symbol)
+    if not snap:
+        from fastapi import HTTPException
+        raise HTTPException(status_code=404, detail=f"No data found for symbol: {symbol}")
     return SymbolSnapshot(**snap)
 
 

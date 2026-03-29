@@ -16,15 +16,18 @@ def compute_drift(
     reference = vol_series.iloc[-(reference_days + recent_days):-recent_days]
     recent = vol_series.iloc[-recent_days:]
 
-    # KS test
-    ks_stat, p_value = ks_2samp(reference.values, recent.values)
-
-    # Mean shift in std deviations
-    mean_diff = abs(recent.mean() - reference.mean())
     ref_std = reference.std()
-    mean_shift = mean_diff / ref_std if ref_std > 0 else 0.0
+    mean_diff = abs(recent.mean() - reference.mean())
+    mean_shift = mean_diff / ref_std if ref_std > 1e-10 else 0.0
 
-    drift_flag = (p_value < ks_threshold) or (mean_shift > mean_shift_threshold)
+    # Only run KS test if reference has enough variance to be meaningful
+    if ref_std > 1e-10:
+        ks_stat, p_value = ks_2samp(reference.values, recent.values)
+        ks_triggered = p_value < ks_threshold
+    else:
+        ks_triggered = False
+
+    drift_flag = ks_triggered or (mean_shift > mean_shift_threshold)
     drift_score = round(float(mean_shift), 4)
 
     return drift_flag, drift_score
