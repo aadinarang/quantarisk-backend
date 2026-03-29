@@ -28,5 +28,6 @@ pytest-cov==5.0.0
 # Misc
 python-dateutil==2.9.0
 
-passlib[bcrypt]
+passlib[bcrypt]==1.7.4
+bcrypt==4.0.1
 python-jose[cryptography]
