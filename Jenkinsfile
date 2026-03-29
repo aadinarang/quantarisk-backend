@@ -1,14 +1,5 @@
-/*
- * QuantaRisk CI/CD/CT Pipeline — Blue/Green Deployment
- *
- * Stages:
- *  1. Checkout + Lint      ruff + mypy static analysis
- *  2. CI: Test             pytest --cov, threshold >= 75%
- *  3. Docker Build & Tag   build + tag :BUILD_NUMBER and :latest
- *  4. Deploy to Green      start new version in inactive slot, health-check loop
- *  5. CT: Smoke Tests      validate all 13 endpoints on green container
- *  6. Traffic Switch       nginx upstream reload (zero-downtime handover)
- *  7. Post                 success notification / conditional rollback on failure
+﻿/*
+ * QuantaRisk CI/CD/CT Pipeline -- Blue/Green Deployment
  */
 
 pipeline {
