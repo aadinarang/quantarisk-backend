@@ -1,4 +1,4 @@
-﻿--extra-index-url https://download.pytorch.org/whl/cpu
+--extra-index-url https://download.pytorch.org/whl/cpu
 
 torch==2.3.0+cpu
 arch==6.3.0
