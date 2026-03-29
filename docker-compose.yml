@@ -1,12 +1,96 @@
+# QuantaRisk docker-compose — Blue/Green + Nginx
+#
+# Services:
+#   nginx            — reverse proxy on port 80, routes to active backend
+#   backend-blue     — blue slot, port 8001 (default active)
+#   backend-green    — green slot, port 8002 (inactive until first deploy)
+#
+# Shared resources:
+#   quantarisk-net   — internal Docker network for inter-container communication
+#   ./quantarisk.db  — SQLite database, bind-mounted into both backend containers
+#   ./models/        — LSTM model weights + scalers, shared across both containers
+#
+# Usage:
+#   docker-compose up -d                  # start all containers
+#   docker-compose up -d backend-blue     # start blue only
+#   docker-compose logs -f backend-green  # stream green logs
+
+version: "3.9"
+
+networks:
+  quantarisk-net:
+    driver: bridge
+
+volumes:
+  nginx-logs:
+
 services:
-  backend:
-    build: .
-    container_name: quantarisk-backend
+
+  # ── Nginx reverse proxy ────────────────────────────────────────
+  nginx:
+    image: nginx:1.25-alpine
+    container_name: quantarisk-nginx
     ports:
-      - "8000:8000"
+      - "80:80"
     volumes:
-      - ./quantarisk.db:/app/quantarisk.db
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - nginx-logs:/var/log/nginx
+    depends_on:
+      - backend-blue
+    networks:
+      - quantarisk-net
+    restart: unless-stopped
+
+  # ── Blue slot (default active) ─────────────────────────────────
+  backend-blue:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: quantarisk-blue
+    ports:
+      - "8001:8000"
     environment:
-      - DATABASE_URL=sqlite:///./quantarisk.db
+      - DATABASE_URL=sqlite:////data/quantarisk.db
       - PYTHONPATH=/app
+      - BUILD_VERSION=local
+      - MODELS_DIR=/models
+    volumes:
+      - ./quantarisk.db:/data/quantarisk.db
+      - ./models:/models
+    networks:
+      - quantarisk-net
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+    restart: unless-stopped
+
+  # ── Green slot (inactive until first Jenkins deploy) ───────────
+  backend-green:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: quantarisk-green
+    ports:
+      - "8002:8000"
+    environment:
+      - DATABASE_URL=sqlite:////data/quantarisk.db
+      - PYTHONPATH=/app
+      - BUILD_VERSION=local
+      - MODELS_DIR=/models
+    volumes:
+      - ./quantarisk.db:/data/quantarisk.db
+      - ./models:/models
+    networks:
+      - quantarisk-net
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+    profiles:
+      - green    # only started explicitly: docker-compose --profile green up -d
     restart: unless-stopped
