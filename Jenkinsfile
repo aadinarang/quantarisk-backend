@@ -1,4 +1,4 @@
-/*
+﻿/*
  * QuantaRisk CI/CD/CT Pipeline -- Blue/Green Deployment
  */
 
@@ -76,6 +76,7 @@ pipeline {
 
                     mkdir -p ${env.DB_PATH}
                     mkdir -p ${env.MODELS_PATH}
+                    touch ${env.DB_PATH}/quantarisk.db
 
                     docker stop quantarisk-${env.INACTIVE_SLOT} 2>/dev/null || true
                     docker rm   quantarisk-${env.INACTIVE_SLOT} 2>/dev/null || true
