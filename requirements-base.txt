@@ -1,7 +1,6 @@
-﻿torch
-numpy==1.26.4
-scipy==1.13.0
-pandas==2.2.2
-scikit-learn
+﻿--extra-index-url https://download.pytorch.org/whl/cpu
+
+torch==2.3.0+cpu
 arch==6.3.0
 yfinance==0.2.38
+sqlalchemy==2.0.29
