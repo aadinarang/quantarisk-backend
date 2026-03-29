@@ -1,5 +1,7 @@
---extra-index-url https://download.pytorch.org/whl/cpu
+﻿--extra-index-url https://download.pytorch.org/whl/cpu
 
+numpy==1.26.4
+scikit-learn==1.4.2
 torch==2.3.0+cpu
 arch==6.3.0
 yfinance==0.2.38
