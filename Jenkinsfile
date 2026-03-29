@@ -59,11 +59,12 @@ pipeline {
                 sh """
                     docker stop ${CONTAINER_NAME} || true
                     docker rm   ${CONTAINER_NAME} || true
-                    touch \$(pwd)/quantarisk.db
+                    DB_PATH=/var/jenkins_home/workspace/quantarisk-pipeline/quantarisk.db
+                    touch $DB_PATH
                     docker run -d \
                       --name ${CONTAINER_NAME} \
                       -p ${APP_PORT}:8000 \
-                      -v \$(pwd)/quantarisk.db:/app/quantarisk.db \
+                      -v $DB_PATH:/app/quantarisk.db \
                       -e DATABASE_URL=sqlite:///./quantarisk.db \
                       -e PYTHONPATH=/app \
                       -e BUILD_VERSION=${BUILD_NUMBER} \
