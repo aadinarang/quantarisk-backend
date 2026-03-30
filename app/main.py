@@ -1,14 +1,19 @@
-from datetime import datetime
 from contextlib import asynccontextmanager
-from fastapi import FastAPI, Query, Depends
+from datetime import datetime
+
+from fastapi import Depends, FastAPI, Query
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
+
 from .db import SessionLocal, Symbol, init_db
 from .models import (
-    SymbolInfo, RiskOverview, SymbolSnapshot,
-    SymbolHistory, DriftSummaryItem
+    DriftSummaryItem,
+    RiskOverview,
+    SymbolHistory,
+    SymbolInfo,
+    SymbolSnapshot,
 )
-from .services.analytics import get_snapshot, get_history
+from .services.analytics import get_history, get_snapshot
 
 
 # --- Lifespan (runs on startup/shutdown) ---
@@ -96,3 +101,7 @@ def get_drift_summary(db: Session = Depends(get_db)):
                 driftScore=snap["driftScore"],
             ))
     return result
+
+@app.get("/health")
+def health():
+    return {"status": "ok"}
