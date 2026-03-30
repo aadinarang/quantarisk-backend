@@ -102,6 +102,6 @@ def get_drift_summary(db: Session = Depends(get_db)):
             ))
     return result
 
-@app.get("/health")
+@app.get("/api/health")
 def health():
     return {"status": "ok"}
