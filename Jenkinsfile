@@ -1,5 +1,14 @@
 /*
- * QuantaRisk CI/CD/CT Pipeline -- Blue/Green Deployment
+ * QuantaRisk CI/CD/CT Pipeline — Blue/Green Deployment
+ *
+ * Stages:
+ *  1. Checkout + Lint      ruff + mypy static analysis
+ *  2. CI: Test             pytest --cov, threshold >= 75%
+ *  3. Docker Build & Tag   build + tag :BUILD_NUMBER and :latest
+ *  4. Deploy to Green      start new version in inactive slot, health-check loop
+ *  5. CT: Smoke Tests      validate all 13 endpoints on green container
+ *  6. Traffic Switch       nginx upstream reload (zero-downtime handover)
+ *  7. Post                 success notification / conditional rollback on failure
  */
 
 pipeline {
@@ -75,8 +84,7 @@ pipeline {
                         || docker network create quantarisk-net
 
                     mkdir -p ${env.DB_PATH}
-			mkdir -p ${env.MODELS_PATH}
-rm -rf ${env.DB_PATH}/quantarisk.db
+                    mkdir -p ${env.MODELS_PATH}
                     touch ${env.DB_PATH}/quantarisk.db
 
                     docker stop quantarisk-${env.INACTIVE_SLOT} 2>/dev/null || true
@@ -86,7 +94,7 @@ rm -rf ${env.DB_PATH}/quantarisk.db
                       --name quantarisk-${env.INACTIVE_SLOT} \\
                       --restart unless-stopped \\
                       -p ${env.INACTIVE_PORT}:8000 \\
-                      -e DATABASE_URL=sqlite:////data/quantarisk.db \\
+                      -e DATABASE_URL=sqlite:///data/quantarisk.db \\
                       -e PYTHONPATH=/app \\
                       -e BUILD_VERSION=${BUILD_NUMBER} \\
                       -e MODELS_DIR=/models \\
@@ -96,18 +104,18 @@ rm -rf ${env.DB_PATH}/quantarisk.db
                       ${IMAGE_NAME}:${BUILD_NUMBER}
 
                     echo "Waiting for health check on port ${env.INACTIVE_PORT}..."
+                    sleep 15
                     ATTEMPTS=0
                     while [ \$ATTEMPTS -lt 30 ]; do
                         STATUS=\$(curl -s -o /dev/null -w "%{http_code}" \\
-                            http://127.0.0.1:${env.INACTIVE_PORT}/api/health 2>/dev/null)
-                        if [ -z "\$STATUS" ]; then STATUS="000"; fi
+                            http://127.0.0.1:${env.INACTIVE_PORT}/api/health 2>/dev/null || echo 000)
                         if [ "\$STATUS" = "200" ]; then
                             echo "Container healthy after \$ATTEMPTS attempts"
                             break
                         fi
                         echo "  attempt \$ATTEMPTS/30 -- HTTP \$STATUS"
                         ATTEMPTS=\$((ATTEMPTS + 1))
-                        sleep 2
+                        sleep 5
                     done
                     if [ \$ATTEMPTS -ge 30 ]; then
                         echo "Health check timed out -- logs:"
