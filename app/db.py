@@ -1,10 +1,19 @@
 ﻿import os
+
+from dotenv import load_dotenv
 from sqlalchemy import (
-    create_engine, Column, String, Float,
-    Boolean, DateTime, Date, Integer, Text, ForeignKey
+    Boolean,
+    Column,
+    Date,
+    DateTime,
+    Float,
+    ForeignKey,
+    Integer,
+    String,
+    Text,
+    create_engine,
 )
 from sqlalchemy.orm import declarative_base, sessionmaker
-from dotenv import load_dotenv
 
 load_dotenv()
 
@@ -126,4 +135,10 @@ class WatchlistItem(Base):
 
 
 def init_db():
+    from sqlalchemy import inspect as sa_inspect
+    inspector = sa_inspect(engine)
+    if inspector.has_table("symbols"):
+        cols = [c["name"] for c in inspector.get_columns("symbols")]
+        if "sector" not in cols:
+            Base.metadata.drop_all(bind=engine)
     Base.metadata.create_all(bind=engine)

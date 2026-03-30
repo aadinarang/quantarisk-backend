@@ -10,7 +10,9 @@ drift results. The four alert types are:
 """
 import uuid
 from datetime import datetime
+
 from sqlalchemy.orm import Session
+
 from ..db import Alert, UserAlertState, WatchlistItem
 
 # ── Alert generation ──────────────────────────────────────────────
@@ -23,7 +25,6 @@ def generate_alerts(db: Session, symbol: str, snapshot: dict, previous_snapshot:
     if not snapshot:
         return
 
-    now = datetime.utcnow()
 
     # 1. Drift detected
     if snapshot.get("driftFlag") and not (previous_snapshot or {}).get("driftFlag"):

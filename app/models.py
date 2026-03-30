@@ -1,6 +1,6 @@
 from typing import List, Literal
-from pydantic import BaseModel
 
+from pydantic import BaseModel
 
 RiskLevel = Literal["LOW", "MEDIUM", "HIGH"]
 

@@ -8,9 +8,9 @@ from datetime import datetime
 
 from sqlalchemy.orm import Session
 
-from ..db import Symbol, RiskSnapshot
-from .analytics import get_snapshot
+from ..db import RiskSnapshot, Symbol
 from .alerts import generate_alerts
+from .analytics import get_snapshot
 
 
 def refresh_all_snapshots(db: Session) -> None:

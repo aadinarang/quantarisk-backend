@@ -1,9 +1,10 @@
-from datetime import date, timedelta, datetime
-import yfinance as yf
-import pandas as pd
-from sqlalchemy.orm import Session
-from ..db import SessionLocal, PriceRecord, Symbol, init_db
+from datetime import date, timedelta
 
+import pandas as pd
+import yfinance as yf
+from sqlalchemy.orm import Session
+
+from ..db import PriceRecord, SessionLocal, Symbol, init_db
 
 WATCHLIST = {
     "AAPL": "Apple Inc.",
