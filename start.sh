@@ -1,4 +1,4 @@
-﻿#!/bin/bash
+#!/bin/bash
 # Entrypoint: run ingestion pipeline then start the API server.
 
 export PYTHONPATH=/app

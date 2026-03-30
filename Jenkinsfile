@@ -107,8 +107,7 @@ pipeline {
                     sleep 15
                     ATTEMPTS=0
                     while [ \$ATTEMPTS -lt 30 ]; do
-                        STATUS=\$(curl -s -o /dev/null -w "%{http_code}" \\
-                            http://127.0.0.1:${env.INACTIVE_PORT}/api/health 2>/dev/null || echo 000)
+                        STATUS=\$(curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:${env.INACTIVE_PORT}/api/health 2>/dev/null)
                         if [ "\$STATUS" = "200" ]; then
                             echo "Container healthy after \$ATTEMPTS attempts"
                             break
