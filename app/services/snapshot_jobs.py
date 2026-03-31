@@ -46,7 +46,7 @@ def refresh_all_snapshots(db: Session) -> None:
             risk_level=current_snapshot["currentRisk"],
             drift_flag=current_snapshot["driftFlag"],
             drift_score=current_snapshot["driftScore"],
-            vol_source=current_snapshot["volSource"],
+            vol_source=current_snapshot.get("volSource", "rolling"),
             computed_at=datetime.utcnow(),
         )
         db.add(row)
